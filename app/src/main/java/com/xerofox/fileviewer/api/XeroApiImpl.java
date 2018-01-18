@@ -59,6 +59,10 @@ public class XeroApiImpl implements XeroApi {
                     List<Task> tasks = new ArrayList<>();
                     String directory = Environment.getExternalStorageDirectory().getPath() + File.separator + FileHelper.PATH_DATA_ROOT;
                     List<File> files = FileUtil.listFilesInDir(directory);
+                    if (files == null || files.isEmpty()) {
+                        ApiResponse<List<Task>> response = new ApiResponse<>(500, tasks, "没有本地文件");
+                        postValue(response);
+                    }
                     for (File file : files) {
                         RandomAccessFile raf;
                         raf = new RandomAccessFile(file, "r");
@@ -78,8 +82,23 @@ public class XeroApiImpl implements XeroApi {
     }
 
     @Override
-    public LiveData<ApiResponse<List<Task>>> getServerTasks(AppExecutors appExecutors) {
-        return getServerTasks(appExecutors, new int[0]);
+    public LiveData<Resource<List<Task>>> getServerTasks(AppExecutors appExecutors) {
+        return new LiveData<Resource<List<Task>>>() {
+            @Override
+            protected void onActive() {
+                super.onActive();
+                appExecutors.networkIO().execute(() -> {
+                    List<Task> response = null;
+                    try {
+                        response = downloadSimpleTaskListFromServer(new int[0], false);
+                        postValue(Resource.success(response));
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        postValue(Resource.error(e.getMessage(), response));
+                    }
+                });
+            }
+        };
     }
 
     @Override

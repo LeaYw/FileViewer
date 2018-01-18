@@ -33,7 +33,7 @@ public class TaskViewModel extends ViewModel {
         downloadTaskHandler = new DownloadTaskHandler(repository);
         checkDownloadHandler = new CheckDownloadHandler(repository);
         tasks = Transformations.switchMap(isLocal, data -> {
-            if (data == null || !data) {
+            if (!data) {
                 return repository.loadServerTasks();
             } else {
                 return repository.loadLocalTasks();
