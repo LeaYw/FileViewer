@@ -62,6 +62,7 @@ public class XeroApiImpl implements XeroApi {
                     if (files == null || files.isEmpty()) {
                         ApiResponse<List<Task>> response = new ApiResponse<>(500, tasks, "没有本地文件");
                         postValue(response);
+                        return;
                     }
                     for (File file : files) {
                         RandomAccessFile raf;
